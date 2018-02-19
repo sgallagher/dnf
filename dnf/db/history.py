@@ -83,10 +83,12 @@ class RPMTransactionItemWrapper(object):
 
 
 class TransactionWrapper(object):
+
+    altered_lt_rpmdb = False
+    altered_gt_rpmdb = False
+
     def __init__(self, trans):
         self._trans = trans
-        self.altered_lt_rpmdb = False
-        self.altered_gt_rpmdb = False
 
     @property
     def tid(self):
@@ -137,8 +139,7 @@ class TransactionWrapper(object):
 
     def packages(self):
         result = self._trans.getItems()
-        result = [RPMTransactionItemWrapper(self, i) for i in result]
-        return result
+        return [RPMTransactionItemWrapper(self, i) for i in result]
 
     def output(self):
         return []
@@ -148,6 +149,30 @@ class TransactionWrapper(object):
 
     def compare_rpmdbv(self, rpmdbv):
         self.altered_gt_rpmdb = self._trans.getRpmdbVersionEnd() != rpmdbv
+
+
+class MergedTransactionWrapper(TransactionWrapper):
+
+    def __init__(self, trans):
+        self._trans = libdnf.swdb.MergedTransaction(trans._trans)
+
+    def merge(self, trans):
+        self._trans.merge(trans._trans)
+
+    @property
+    def loginuid(self):
+        return self._trans.listUserIds()
+
+    def tids(self):
+        return self._trans.listIds()
+
+    @property
+    def return_code(self):
+        return self._trans.listDone()
+
+    @property
+    def cmdline(self):
+        return self._trans.listCmdlines()
 
 
 class SwdbInterface(object):
