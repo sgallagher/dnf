@@ -896,7 +896,7 @@ class Base(object):
                     te_nevra = dnf.util._te_nevra(te)
                     for tsi in self._transaction:
                         if str(tsi) == te_nevra:
-                            tsi.action = dnf.transaction.PKG_FAIL
+                            tsi.state = libdnf.swdb.TransactionItemState_ERROR
 
                 errstring = _('Errors occurred during transaction.')
                 logger.debug(errstring)
@@ -943,7 +943,6 @@ class Base(object):
                 if p.getName() in names:
                     p.setInstalled(True)
                     p.save()
-            self.history.swdb.setItemDone(ti)
 
         # TODO: installed groups in environments
 
@@ -1000,7 +999,7 @@ class Base(object):
             installed = rpmdb_sack.query().installed()._nevra(
                 rpo.name, rpo.evr, rpo.arch)
             if len(installed) < 1:
-                tsi.action = dnf.transaction.PKG_FAIL
+                tsi.state = libdnf.swdb.TransactionItemState_ERROR
                 logger.critical(_('%s was supposed to be installed'
                                   ' but is not!'), rpo)
                 count = display_banner(rpo, count)
